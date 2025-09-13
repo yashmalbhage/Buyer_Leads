@@ -1,15 +1,53 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://neondb_owner:npg_C0y6YzoLUctM@ep-falling-cell-a17ticrn-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+enum BuyerStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(VIEWER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Buyer {
+  id        String         @id @default(uuid())
+  name      String
+  email     String?        @unique
+  phone     String?
+  location  String?
+  status    BuyerStatus    @default(NEW)
+  notes     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  history   BuyerHistory[]
+}
+
+model BuyerHistory {
+  id        String      @id @default(uuid())
+  buyer     Buyer       @relation(fields: [buyerId], references: [id])
+  buyerId   String
+  status    BuyerStatus
+  changedAt DateTime    @default(now())
+  notes     String?
 }
